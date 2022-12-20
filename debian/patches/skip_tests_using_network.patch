@@ -1,0 +1,164 @@
+Description: disable tests requiring network connection
+ These tests should pass if network access is available
+Bug-Debian: http://bugs.debian.org/710941
+Origin: vendor
+Author: Cédric Boutillier <boutil@debian.org>
+Forwarded: not-needed
+Last-Update: 2021-01-09
+
+--- a/tests/test_basic.rb
++++ b/tests/test_basic.rb
+@@ -146,7 +146,7 @@
+     assert_equal($sent, $received)
+   end
+ 
+-  def test_bind_connect
++  def est_bind_connect
+     local_ip = UDPSocket.open {|s| s.connect('localhost', 80); s.addr.last }
+ 
+     bind_port = next_port
+--- a/tests/test_httpclient.rb
++++ b/tests/test_httpclient.rb
+@@ -8,7 +8,7 @@
+ 
+   #-------------------------------------
+ 
+-  def test_http_client
++  def est_http_client
+     ok = false
+     EM.run {
+       c = silent { EM::P::HttpClient.send :request, :host => "www.google.com", :port => 80 }
+@@ -24,7 +24,7 @@
+ 
+   #-------------------------------------
+ 
+-  def test_http_client_1
++  def est_http_client_1
+     ok = false
+     EM.run {
+       c = silent { EM::P::HttpClient.send :request, :host => "www.google.com", :port => 80 }
+@@ -40,7 +40,7 @@
+ 
+   #-------------------------------------
+ 
+-  def test_http_client_2
++  def est_http_client_2
+     ok = false
+     EM.run {
+       c = silent { EM::P::HttpClient.send :request, :host => "www.google.com", :port => 80 }
+@@ -157,7 +157,7 @@
+ 
+   # TODO, need a more intelligent cookie tester.
+   # In fact, this whole test-harness needs a beefier server implementation.
+-  def test_cookie
++  def est_cookie
+     ok = false
+     EM.run {
+       c = silent { EM::Protocols::HttpClient.send :request, :host => "www.google.com", :port => 80, :cookie=>"aaa=bbb" }
+@@ -173,7 +173,7 @@
+ 
+   # We can tell the client to send an HTTP/1.0 request (default is 1.1).
+   # This is useful for suppressing chunked responses until those are working.
+-  def test_version_1_0
++  def est_version_1_0
+     ok = false
+     EM.run {
+       c = silent { EM::P::HttpClient.request(
+--- a/tests/test_httpclient2.rb
++++ b/tests/test_httpclient2.rb
+@@ -51,7 +51,7 @@
+     assert(err)
+   end
+ 
+-  def test_get
++  def est_get
+     content = nil
+     EM.run {
+       setup_timeout(CI_WINDOWS_OLD ? 9 : TIMEOUT)
+@@ -85,7 +85,7 @@
+     assert(content)
+   end
+ 
+-  def test_get_pipeline
++  def est_get_pipeline
+     headers, headers2 = nil, nil
+     EM.run {
+       setup_timeout TIMEOUT
+@@ -116,7 +116,7 @@
+     }
+   end
+ 
+-  def test_https_get
++  def est_https_get
+     omit("No SSL") unless EM.ssl?
+     d = nil
+     EM.run {
+--- a/tests/test_resolver.rb
++++ b/tests/test_resolver.rb
+@@ -30,7 +30,7 @@
+     refute(EM::DNS::Resolver.hosts.include? nil)
+   end
+ 
+-  def test_a
++  def est_a
+     pend('FIXME: this test is broken on Windows') if windows? && RUBY_VERSION < "2.4"
+ 
+     EM.run {
+@@ -46,7 +46,7 @@
+     }
+   end
+ 
+-  def test_bad_host
++  def est_bad_host
+     EM.run {
+       d = EM::DNS::Resolver.resolve "asdfasasdf"
+       d.callback { assert false }
+@@ -63,7 +63,7 @@
+   end
+ 
+   # There isn't a public DNS entry like 'example.com' with an A rrset
+-  def test_a_pair
++  def est_a_pair
+     pend('FIXME: this test is broken on Windows') if windows? && RUBY_VERSION < "2.4"
+ 
+     EM.run {
+@@ -96,7 +96,7 @@
+     }
+   end
+ 
+-  def test_timer_cleanup
++  def est_timer_cleanup
+     pend('FIXME: this test is broken on Windows') if windows? && RUBY_VERSION < "2.4"
+ 
+     EM.run {
+@@ -115,7 +115,7 @@
+     }
+   end
+ 
+-  def test_failure_timer_cleanup
++  def est_failure_timer_cleanup
+     EM.run {
+       d = EM::DNS::Resolver.resolve "asdfasdf"
+       d.callback { assert false }
+--- a/tests/test_unbind_reason.rb
++++ b/tests/test_unbind_reason.rb
+@@ -11,7 +11,7 @@
+   end
+ 
+   # RFC 5737 Address Blocks Reserved for Documentation
+-  def test_connect_timeout
++  def est_connect_timeout
+     conn = nil
+     EM.run do
+       conn = EM.connect '192.0.2.0', 80, StubConnection
+--- a/tests/test_pending_connect_timeout.rb
++++ b/tests/test_pending_connect_timeout.rb
+@@ -20,7 +20,7 @@
+       }
+     end
+ 
+-    def test_for_real
++    def est_for_real
+       start, finish = nil
+ 
+       timeout_handler = Module.new do

@@ -1,0 +1,87 @@
+From 9ad5838194e92514f19d3bf9fd9d600cc867ee64 Mon Sep 17 00:00:00 2001
+From: MSP-Greg <greg.mpls@gmail.com>
+Date: Tue, 22 Jan 2019 09:32:05 -0600
+Subject: [PATCH] Misc test fixups
+
+em_ssl_handlers - EMSSLHandlers
+1. use setup_timeout from em_test_helper.rb in #client_server
+2. Add timeout: KWARG to  #client_server
+
+Add more time to some tests in test_httpclient2.rb for older Windows intermittent errors.
+---
+ tests/em_ssl_handlers.rb  |  9 +++++----
+ tests/test_httpclient2.rb | 12 ++++++------
+ 2 files changed, 11 insertions(+), 10 deletions(-)
+
+--- a/tests/em_ssl_handlers.rb
++++ b/tests/em_ssl_handlers.rb
+@@ -18,7 +18,7 @@
+ # `Client` has a `:client_unbind` parameter, which when set to true, calls
+ # `EM.stop_event_loop` in the `unbind` callback.
+ # 
+-# `Server` has two additional paramters.
++# `Server` has two additional parameters.
+ #
+ # `:ssl_verify_result`, which is normally set to true/false for the
+ # `ssl_verify_peer` return value.  If it is set to a String starting with "|RAISE|",
+@@ -141,12 +141,13 @@
+     end
+   end
+ 
+-  def client_server(c_hndlr = Client, s_hndlr = Server, client: nil, server: nil)
++  def client_server(c_hndlr = Client, s_hndlr = Server,
++    client: nil, server: nil, timeout: 3.0)
+     EM.run do
++      # fail safe stop
++      setup_timeout timeout
+       EM.start_server IP, PORT, s_hndlr, server
+       EM.connect IP, PORT, c_hndlr, client
+-      # fail safe stop
+-      EM.add_timer(3.0) { EM.stop_event_loop }
+     end
+   end
+ end if EM.ssl?
+\ No newline at end of file
+--- a/tests/test_httpclient2.rb
++++ b/tests/test_httpclient2.rb
+@@ -5,7 +5,9 @@
+   end
+ 
+   TIMEOUT = (windows? ? 2.0 : 1)
+-
++  # below may be due to an issue with OpenSSL 1.0.2 and earlier with Windows
++  CI_WINDOWS_OLD = windows? and RUBY_VERSION < '2.5'
++  
+   def setup
+     @port = next_port
+   end
+@@ -41,7 +43,7 @@
+   def test_bad_server
+     err = nil
+     EM.run {
+-      setup_timeout(TIMEOUT)
++      setup_timeout TIMEOUT
+       http = silent { EM::P::HttpClient2.connect '127.0.0.1', 9999 }
+       d = http.get "/"
+       d.errback { err = true; d.internal_error; EM.stop }
+@@ -52,7 +54,7 @@
+   def test_get
+     content = nil
+     EM.run {
+-      setup_timeout TIMEOUT
++      setup_timeout(CI_WINDOWS_OLD ? 9 : TIMEOUT)
+       http = silent { EM::P::HttpClient2.connect :host => "www.google.com", :port => 80 }
+       d = http.get "/"
+       d.callback {
+@@ -117,10 +119,8 @@
+   def test_https_get
+     omit("No SSL") unless EM.ssl?
+     d = nil
+-    # below is actually due to an issue with OpenSSL 1.0.2 and earlier with Windows
+-    ci_windows_old = windows? and RUBY_VERSION < '2.5'
+     EM.run {
+-      setup_timeout(ci_windows_old ? 9 : TIMEOUT)
++      setup_timeout(CI_WINDOWS_OLD ? 9 : TIMEOUT)
+       http = silent { EM::P::HttpClient2.connect :host => 'www.google.com', :port => 443, :tls => true }
+       d = http.get "/"
+       d.callback {EM.stop}

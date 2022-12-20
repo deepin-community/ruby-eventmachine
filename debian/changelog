@@ -1,0 +1,11 @@
+ruby-eventmachine (1.3~pre20201020-b50c135-deepin) UNRELEASED; urgency=medium
+
+  * update
+
+ -- Deepin Developer <deepin-dev@deepin.org>  Thu, 11 Aug 2022 03:26:33 -0400
+
+ruby-eventmachine (1.3~pre20201020-b50c135-deepin) stable; urgency=medium
+
+  * ['Rebuild  against by  current gcc 11.2']
+
+ -- Deepin Packages Builder <packages@deepin.org>  Thu, 11 Aug 2022 13:15:47 +0800

@@ -1,0 +1,39 @@
+Description: change port 9999 in tests to 9998
+ to avoid conflict with default (APT cacher) approx port
+Author: Cédric Boutillier <boutil@debian.org>
+Last-Update: 2021-01-09
+
+--- a/tests/test_connection_count.rb
++++ b/tests/test_connection_count.rb
+@@ -50,9 +50,9 @@
+     EM.run {
+       $client_conns = 0
+       $initial_conns = EM.connection_count
+-      EM.start_server("localhost", 9999)
++      EM.start_server("localhost", 9998)
+       $server_conns = EM.connection_count
+-      3.times { EM.connect("localhost", 9999, Client) }
++      3.times { EM.connect("localhost", 9998, Client) }
+     }
+ 
+     assert_equal(0, $initial_conns)
+@@ -75,7 +75,7 @@
+     omit_if(jruby?)
+     EM.run {
+       assert_equal(0, EM.num_close_scheduled)
+-      EM.connect("localhost", 9999, DoubleCloseClient) # nothing listening on 9999
++      EM.connect("localhost", 9998, DoubleCloseClient) # nothing listening on 9998
+     }
+     assert_equal(1, $num_close_scheduled_1)
+     assert_equal(0, $num_close_scheduled_2)
+--- a/tests/test_httpclient2.rb
++++ b/tests/test_httpclient2.rb
+@@ -44,7 +44,7 @@
+     err = nil
+     EM.run {
+       setup_timeout TIMEOUT
+-      http = silent { EM::P::HttpClient2.connect 'localhost', 9999 }
++      http = silent { EM::P::HttpClient2.connect 'localhost', 9998 }
+       d = http.get "/"
+       d.errback { err = true; d.internal_error; EM.stop }
+     }

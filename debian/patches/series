@@ -1,0 +1,10 @@
+#9ad5838194e92514f19d3bf9fd9d600cc867ee64.patch
+skip_test_stop_server.patch
+skip_tests_using_network.patch
+no-git-gemspec.patch
+skip_exception_on_unbind.patch
+rewrite_dhparam_1_2.patch
+localhost_ipv6.patch
+change_port_9999_to_9998.patch
+inactivity_timeout_mips.patch
+skip_test_em_system_pid_ruby3.patch

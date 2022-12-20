@@ -1,0 +1,41 @@
+Source: ruby-eventmachine
+Section: ruby
+Priority: optional
+Maintainer: Deepin Developer <deepin-dev@deepin.org>
+Uploaders: Deepin Packages Builder <packages@deepin.org>
+           Paul van Tilburg <paulvt@debian.org>,
+           Per Andersson <avtobiff@gmail.com>
+Build-Depends: debhelper-compat (= 13),
+               gem2deb,
+               iproute2,
+               libssl-dev,
+               rake,
+               rake-compiler,
+               ruby-test-unit
+Standards-Version: 4.5.1
+#Vcs-Git
+#Vcs-Browser
+Homepage: https://github.com/eventmachine/eventmachine
+Testsuite: autopkgtest-pkg-ruby
+XS-Ruby-Versions: all
+Rules-Requires-Root: no
+
+Package: ruby-eventmachine
+Architecture: any
+XB-Ruby-Versions: ${ruby:Versions}
+Depends: ruby | ruby-interpreter,
+         ${misc:Depends},
+         ${shlibs:Depends}
+Breaks: ruby-diaspora-vine (<< 0.2.0.develop.4-3~)
+Multi-Arch: same
+Description: Ruby/EventMachine library
+ EventMachine implements a fast, single-threaded engine for arbitrary network
+ communications. It's extremely easy to use in Ruby. EventMachine wraps all
+ interactions with IP sockets, allowing programs to concentrate on the
+ implementation of network protocols. It can be used to create both network
+ servers and clients. To create a server or client, a Ruby program only needs
+ to specify the IP address and port, and provide a Module that implements the
+ communications protocol. Implementations of several standard network protocols
+ are provided with the package, primarily to serve as examples. The real goal
+ of EventMachine is to enable programs to easily interface with other programs
+ using TCP/IP, especially if custom protocols are required.

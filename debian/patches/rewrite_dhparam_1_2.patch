@@ -1,0 +1,23 @@
+Description: rewrite failing test when building on several architectures
+ armel, armhf, hppa, mips, mipsel, sparc64
+Bug: https://github.com/eventmachine/eventmachine/issues/873
+Origin: https://github.com/eventmachine/eventmachine/issues/873#issuecomment-456483112
+Last-Update: 2019-01-23
+
+--- a/tests/test_ssl_dhparam.rb
++++ b/tests/test_ssl_dhparam.rb
+@@ -25,7 +25,13 @@
+   def test_dhparam_1_2
+     omit_if(rbx?)
+ 
+-    client_server client: CLIENT_1_2, server: DH_1_2.merge(dhparam: DH_PARAM_FILE)
++    # a few platforms error due to long test times, default is 3
++    slow_platforms = %w[arm-linux-gnueabi armhf-linux-gnueabi hppa-linux-gnu mips-linux-gnu mipsel-linux-gnu sparc64-linux-gnu]
++    slow = slow_platforms.include?(RUBY_PLATFORM) ? 12 : 3
++
++    client_server client: CLIENT_1_2,
++      server: DH_1_2.merge(dhparam: DH_PARAM_FILE),
++      timeout: slow
+ 
+     assert Client.handshake_completed?
+     assert Server.handshake_completed?

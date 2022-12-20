@@ -1,0 +1,3 @@
+# It is dual licensed under Ruby's license or GPL
+# http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=591979
+ruby-eventmachine: possible-gpl-code-linked-with-openssl

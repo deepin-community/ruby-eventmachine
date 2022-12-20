@@ -1,0 +1,18 @@
+#!/usr/bin/make -f
+
+export GEM2DEB_TEST_RUNNER = --check-dependencies
+
+%:
+	dh $@ --buildsystem=ruby --with ruby
+
+override_dh_installchangelogs:
+	dh_installchangelogs CHANGELOG.md
+
+override_dh_auto_install:
+	mv rakelib rakelib.off
+	dh_auto_install
+	mv rakelib.off rakelib
+
+override_dh_auto_clean:
+	dh_auto_clean
+	if [ -d rakelib.off ]; then mv rakelib.off rakelib; fi

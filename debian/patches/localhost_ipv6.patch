@@ -1,0 +1,919 @@
+Description: use localhost instead of 127.0.0.1
+ to avoid test failures on ipv6 only build machines
+Author: Cédric Boutillier <boutil@debian.org>
+Last-Update: 2021-01-09
+
+--- a/tests/test_attach.rb
++++ b/tests/test_attach.rb
+@@ -45,8 +45,8 @@
+     socket = nil
+ 
+     EM.run {
+-      EM.start_server "127.0.0.1", @port, EchoServer
+-      socket = TCPSocket.new "127.0.0.1", @port
++      EM.start_server "localhost", @port, EchoServer
++      socket = TCPSocket.new "localhost", @port
+       EM.watch socket, EchoClient, socket
+     }
+ 
+@@ -67,7 +67,7 @@
+ 
+   def test_attach_server
+     omit_if(jruby?)
+-    $before = TCPServer.new("127.0.0.1", @port)
++    $before = TCPServer.new("localhost", @port)
+     sig     = nil
+     EM.run {
+       sig = EM.attach_server $before, EchoServer
+@@ -79,7 +79,7 @@
+           EM.add_timer(0.1) { EM.stop }
+         end
+       end
+-      EM.connect("127.0.0.1", @port, handler)
++      EM.connect("localhost", @port, handler)
+     }
+ 
+     assert_equal false, $before.closed?
+--- a/tests/test_basic.rb
++++ b/tests/test_basic.rb
+@@ -11,9 +11,9 @@
+     mod = Module.new
+     a, b = nil, nil
+     EM.run {
+-      EM.start_server '127.0.0.1', @port, mod
+-      a = EM.connect '127.0.0.1', @port, mod
+-      b = EM.connect '127.0.0.1', @port, mod
++      EM.start_server 'localhost', @port, mod
++      a = EM.connect 'localhost', @port, mod
++      b = EM.connect 'localhost', @port, mod
+       EM.stop
+     }
+     assert_equal a.class, b.class
+@@ -61,8 +61,8 @@
+     assert_nothing_raised do
+       EM.run {
+         setup_timeout
+-        EM.start_server "127.0.0.1", @port, Trivial
+-        EM.connect "127.0.0.1", @port
++        EM.start_server "localhost", @port, Trivial
++        EM.connect "localhost", @port
+       }
+     end
+   end
+@@ -96,8 +96,8 @@
+   def test_unbind_error_during_stop
+     assert_raises( UnbindError::ERR ) {
+       EM.run {
+-        EM.start_server "127.0.0.1", @port
+-        EM.connect "127.0.0.1", @port, UnbindError do
++        EM.start_server "localhost", @port
++        EM.connect "localhost", @port, UnbindError do
+           EM.stop
+         end
+       }
+@@ -110,8 +110,8 @@
+         assert(e.is_a?(UnbindError::ERR))
+         EM.stop
+       end
+-      EM.start_server "127.0.0.1", @port
+-      EM.connect "127.0.0.1", @port, UnbindError
++      EM.start_server "localhost", @port
++      EM.connect "localhost", @port, UnbindError
+     }
+ 
+     # Remove the error handler before the next test
+@@ -138,8 +138,8 @@
+     $received = ''
+     $sent = (0..255).to_a.pack('C*')
+     EM::run {
+-      EM::start_server "127.0.0.1", @port, BrsTestSrv
+-      EM::connect "127.0.0.1", @port, BrsTestCli
++      EM::start_server "localhost", @port, BrsTestSrv
++      EM::connect "localhost", @port, BrsTestCli
+ 
+       setup_timeout
+     }
+@@ -164,8 +164,8 @@
+ 
+     EM.run do
+       darwin? ? setup_timeout(0.3) : setup_timeout
+-      EM.start_server "127.0.0.1", @port, bound_server
+-      EM.bind_connect local_ip, bind_port, "127.0.0.1", @port
++      EM.start_server "localhost", @port, bound_server
++      EM.bind_connect local_ip, bind_port, "localhost", @port
+     end
+ 
+     assert_equal bind_port, port
+@@ -250,8 +250,8 @@
+   def test_bubble_errors_from_post_init
+     assert_raises(PostInitRaiser::ERR) do
+       EM.run do
+-        EM.start_server "127.0.0.1", @port
+-        EM.connect "127.0.0.1", @port, PostInitRaiser
++        EM.start_server "localhost", @port
++        EM.connect "localhost", @port, PostInitRaiser
+       end
+     end
+   end
+@@ -266,15 +266,15 @@
+   def test_bubble_errors_from_initialize
+     assert_raises(InitializeRaiser::ERR) do
+       EM.run do
+-        EM.start_server "127.0.0.1", @port
+-        EM.connect "127.0.0.1", @port, InitializeRaiser
++        EM.start_server "localhost", @port
++        EM.connect "localhost", @port, InitializeRaiser
+       end
+     end
+   end
+ 
+   def test_schedule_close
+     omit_if(jruby?)
+-    localhost, port = '127.0.0.1', 9000
++    localhost, port = 'localhost', 9000
+     timer_ran = false
+     num_close_scheduled = nil
+     EM.run do
+--- a/tests/test_connection_count.rb
++++ b/tests/test_connection_count.rb
+@@ -50,9 +50,9 @@
+     EM.run {
+       $client_conns = 0
+       $initial_conns = EM.connection_count
+-      EM.start_server("127.0.0.1", 9999)
++      EM.start_server("localhost", 9999)
+       $server_conns = EM.connection_count
+-      3.times { EM.connect("127.0.0.1", 9999, Client) }
++      3.times { EM.connect("localhost", 9999, Client) }
+     }
+ 
+     assert_equal(0, $initial_conns)
+@@ -75,7 +75,7 @@
+     omit_if(jruby?)
+     EM.run {
+       assert_equal(0, EM.num_close_scheduled)
+-      EM.connect("127.0.0.1", 9999, DoubleCloseClient) # nothing listening on 9999
++      EM.connect("localhost", 9999, DoubleCloseClient) # nothing listening on 9999
+     }
+     assert_equal(1, $num_close_scheduled_1)
+     assert_equal(0, $num_close_scheduled_2)
+--- a/tests/test_epoll.rb
++++ b/tests/test_epoll.rb
+@@ -47,11 +47,11 @@
+     EM.epoll
+     EM.set_descriptor_table_size 60000
+     EM.run {
+-      EM.start_server "127.0.0.1", 9800, TestEchoServer
++      EM.start_server "localhost", 9800, TestEchoServer
+       $n = 0
+       $max = 0
+       100.times {
+-        EM.connect("127.0.0.1", 9800, TestEchoClient) {$n += 1}
++        EM.connect("localhost", 9800, TestEchoClient) {$n += 1}
+       }
+     }
+     assert_equal(0, $n)
+@@ -74,7 +74,7 @@
+     end
+ 
+     def post_init
+-      send_datagram "1234567890", "127.0.0.1", @port
++      send_datagram "1234567890", "localhost", @port
+     end
+ 
+     def receive_data dgm
+@@ -86,8 +86,8 @@
+   def test_datagrams
+     $in = $out = ""
+     EM.run {
+-      EM.open_datagram_socket "127.0.0.1", @port, TestDatagramServer
+-      EM.open_datagram_socket "127.0.0.1", 0, TestDatagramClient, @port
++      EM.open_datagram_socket "localhost", @port, TestDatagramServer
++      EM.open_datagram_socket "localhost", 0, TestDatagramClient, @port
+     }
+     assert_equal( "1234567890", $in )
+     assert_equal( "abcdefghij", $out )
+--- a/tests/test_handler_check.rb
++++ b/tests/test_handler_check.rb
+@@ -8,7 +8,7 @@
+   def test_with_correct_class
+     assert_nothing_raised do
+       EM.run {
+-        EM.connect("127.0.0.1", 80, Foo)
++        EM.connect("localhost", 80, Foo)
+         EM.stop_event_loop
+       }
+     end
+@@ -17,7 +17,7 @@
+   def test_with_incorrect_class
+     assert_raise(ArgumentError) do
+       EM.run {
+-        EM.connect("127.0.0.1", 80, String)
++        EM.connect("localhost", 80, String)
+         EM.stop_event_loop
+       }
+     end
+@@ -26,7 +26,7 @@
+   def test_with_module
+     assert_nothing_raised do
+       EM.run {
+-        EM.connect("127.0.0.1", 80, TestModule)
++        EM.connect("localhost", 80, TestModule)
+         EM.stop_event_loop
+       }
+     end
+--- a/tests/test_hc.rb
++++ b/tests/test_hc.rb
+@@ -32,12 +32,12 @@
+   def test_no_content
+     the_connection = nil
+     EM.run {
+-      EM.start_server( "127.0.0.1", @port, SimpleTest ) do |conn|
++      EM.start_server( "localhost", @port, SimpleTest ) do |conn|
+         the_connection = conn
+       end
+       setup_timeout
+ 
+-      EM.connect "127.0.0.1", @port, StopOnUnbind do |c|
++      EM.connect "localhost", @port, StopOnUnbind do |c|
+         c.send_data [ "aaa\n", "bbb\r\n", "ccc\n", "\n" ].join
+         c.close_connection_after_writing
+       end
+@@ -52,12 +52,12 @@
+     content = "A" * 50
+     headers = ["aaa", "bbb", "Content-length: #{content.length}", "ccc"]
+     EM.run {
+-      EM.start_server( "127.0.0.1", @port, SimpleTest ) do |conn|
++      EM.start_server( "localhost", @port, SimpleTest ) do |conn|
+         the_connection = conn
+       end
+       setup_timeout
+ 
+-      EM.connect "127.0.0.1", @port, StopOnUnbind do |c|
++      EM.connect "localhost", @port, StopOnUnbind do |c|
+         headers.each { |h| c.send_data "#{h}\r\n" }
+         c.send_data "\n"
+         c.send_data content
+@@ -74,12 +74,12 @@
+     content = "A" * 50
+     headers = ["aaa", "bbb", "Content-length: #{content.length}", "ccc"]
+     EM.run {
+-      EM.start_server( "127.0.0.1", @port, SimpleTest ) do |conn|
++      EM.start_server( "localhost", @port, SimpleTest ) do |conn|
+         the_connection = conn
+       end
+       setup_timeout
+ 
+-      EM.connect( "127.0.0.1", @port, StopOnUnbind ) do |c|
++      EM.connect( "localhost", @port, StopOnUnbind ) do |c|
+         5.times do
+           headers.each { |h| c.send_data "#{h}\r\n" }
+           c.send_data "\n"
+@@ -100,12 +100,12 @@
+   #   content = "A" * 50
+   #   headers = ["aaa", "bbb", ["Content-length: #{content.length}"]*2, "ccc"].flatten
+   #   EM.run {
+-  #     EM.start_server( "127.0.0.1", @port, SimpleTest ) do |conn|
++  #     EM.start_server( "localhost", @port, SimpleTest ) do |conn|
+   #       the_connection = conn
+   #     end
+   #     EM.add_timer(4) {raise "test timed out"}
+   #     test_proc = proc {
+-  #       t = TCPSocket.new "127.0.0.1", @port
++  #       t = TCPSocket.new "localhost", @port
+   #       headers.each {|h| t.write "#{h}\r\n" }
+   #       t.write "\n"
+   #       t.write content
+@@ -129,12 +129,12 @@
+     ]
+ 
+     EM.run {
+-      EM.start_server( "127.0.0.1", @port, SimpleTest ) do |conn|
++      EM.start_server( "localhost", @port, SimpleTest ) do |conn|
+         the_connection = conn
+       end
+       setup_timeout
+ 
+-      EM.connect( "127.0.0.1", @port, StopOnUnbind ) do |c|
++      EM.connect( "localhost", @port, StopOnUnbind ) do |c|
+         headers.each { |h| c.send_data "#{h}\r\n" }
+         c.send_data "\n"
+         c.send_data content
+--- a/tests/test_httpclient.rb
++++ b/tests/test_httpclient.rb
+@@ -75,8 +75,8 @@
+   def test_http_empty_content
+       ok = false
+       EM.run {
+-        EM.start_server "127.0.0.1", @port, EmptyContent
+-        c = silent { EM::P::HttpClient.send :request, :host => "127.0.0.1", :port => @port }
++        EM.start_server "localhost", @port, EmptyContent
++        c = silent { EM::P::HttpClient.send :request, :host => "localhost", :port => @port }
+         c.callback {
+           ok = true
+           c.close_connection
+@@ -134,10 +134,10 @@
+   def test_post
+       response = nil
+       EM.run {
+-        EM.start_server '127.0.0.1', @port, PostContent
++        EM.start_server 'localhost', @port, PostContent
+         setup_timeout 2
+         c = silent { EM::P::HttpClient.request(
+-          :host         => '127.0.0.1',
++          :host         => 'localhost',
+           :port         => @port,
+           :method       => :post,
+           :request      => "/aaa",
+@@ -220,8 +220,8 @@
+   def test_http_chunked_encoding_content
+     ok = false
+     EM.run {
+-      EM.start_server "127.0.0.1", @port, ChunkedEncodingContent
+-      c = silent { EM::P::HttpClient.send :request, :host => "127.0.0.1", :port => @port }
++      EM.start_server "localhost", @port, ChunkedEncodingContent
++      c = silent { EM::P::HttpClient.send :request, :host => "localhost", :port => @port }
+       c.callback { |result|
+         if result[:content] == "chunk1" * 1024 + "chunk2" * 15
+           ok = true
+--- a/tests/test_httpclient2.rb
++++ b/tests/test_httpclient2.rb
+@@ -20,10 +20,10 @@
+   def test_connect
+     EM.run {
+       setup_timeout
+-      EM.start_server '127.0.0.1', @port, TestServer
++      EM.start_server 'localhost', @port, TestServer
+       silent do
+-        EM::P::HttpClient2.connect '127.0.0.1', @port
+-        EM::P::HttpClient2.connect( :host=>'127.0.0.1', :port=>@port )
++        EM::P::HttpClient2.connect 'localhost', @port
++        EM::P::HttpClient2.connect( :host=>'localhost', :port=>@port )
+       end
+       EM.stop
+     }
+@@ -32,9 +32,9 @@
+   def test_bad_port
+     EM.run {
+       setup_timeout
+-      EM.start_server '127.0.0.1', @port, TestServer
++      EM.start_server 'localhost', @port, TestServer
+       assert_raises( ArgumentError ) {
+-        silent { EM::P::HttpClient2.connect '127.0.0.1', "xxx" }
++        silent { EM::P::HttpClient2.connect 'localhost', "xxx" }
+       }
+       EM.stop
+     }
+@@ -44,7 +44,7 @@
+     err = nil
+     EM.run {
+       setup_timeout TIMEOUT
+-      http = silent { EM::P::HttpClient2.connect '127.0.0.1', 9999 }
++      http = silent { EM::P::HttpClient2.connect 'localhost', 9999 }
+       d = http.get "/"
+       d.errback { err = true; d.internal_error; EM.stop }
+     }
+@@ -108,8 +108,8 @@
+   def test_authheader
+     EM.run {
+       setup_timeout TIMEOUT
+-      EM.start_server '127.0.0.1', @port, TestServer
+-      http = silent { EM::P::HttpClient2.connect '127.0.0.1', 18842 }
++      EM.start_server 'localhost', @port, TestServer
++      http = silent { EM::P::HttpClient2.connect 'localhost', 18842 }
+       d = http.get :url=>"/", :authorization=>"Basic xxx"
+       d.callback {EM.stop}
+       d.errback {EM.stop}
+--- a/tests/test_idle_connection.rb
++++ b/tests/test_idle_connection.rb
+@@ -10,8 +10,8 @@
+ 
+     a, b = nil, nil
+     EM.run do
+-      EM.start_server '127.0.0.1', @port, Module.new
+-      conn = EM.connect '127.0.0.1', @port
++      EM.start_server 'localhost', @port, Module.new
++      conn = EM.connect 'localhost', @port
+       EM.add_timer(0.3) do
+         a = conn.get_idle_time
+         conn.send_data 'a'
+--- a/tests/test_inactivity_timeout.rb
++++ b/tests/test_inactivity_timeout.rb
+@@ -5,7 +5,7 @@
+   if EM.respond_to? :get_comm_inactivity_timeout
+     def test_default
+       EM.run {
+-        c = EM.connect("127.0.0.1", 54321)
++        c = EM.connect("localhost", 54321)
+         assert_equal 0.0, c.comm_inactivity_timeout
+         EM.stop
+       }
+@@ -13,7 +13,7 @@
+ 
+     def test_set_and_get
+       EM.run {
+-        c = EM.connect("127.0.0.1", 54321)
++        c = EM.connect("localhost", 54321)
+         c.comm_inactivity_timeout = 2.5
+         assert_equal 2.5, c.comm_inactivity_timeout
+         EM.stop
+@@ -39,9 +39,9 @@
+       EM.run {
+         setup_timeout 0.4
+         EM.heartbeat_interval = 0.01
+-        EM.start_server("127.0.0.1", 12345, timeout_start)
++        EM.start_server("localhost", 12345, timeout_start)
+         EM.add_timer(0.01) {
+-          c = EM.connect("127.0.0.1", 12345, timeout_handler)
++          c = EM.connect("localhost", 12345, timeout_handler)
+           c.comm_inactivity_timeout = 0.02
+         }
+       }
+@@ -81,8 +81,8 @@
+ 
+       EM.run {
+         setup_timeout 1.4
+-        EM.start_server("127.0.0.1", 12345, timeout_start_tls)
+-        c = EM.connect("127.0.0.1", 12345, timeout_handler_tls)
++        EM.start_server("localhost", 12345, timeout_start_tls)
++        c = EM.connect("localhost", 12345, timeout_handler_tls)
+         c.comm_inactivity_timeout = 0.15
+       }
+ 
+--- a/tests/test_io_streamer.rb
++++ b/tests/test_io_streamer.rb
+@@ -39,8 +39,8 @@
+     received = ''.dup
+     EM.run do
+       port = next_port
+-      EM.start_server '127.0.0.1', port, StreamServer, sent
+-      EM.connect '127.0.0.1', port, StreamClient, received
++      EM.start_server 'localhost', port, StreamServer, sent
++      EM.connect 'localhost', port, StreamClient, received
+     end
+     assert_equal sent, received
+   end
+--- a/tests/test_keepalive.rb
++++ b/tests/test_keepalive.rb
+@@ -26,8 +26,8 @@
+     end
+ 
+     EM.run do
+-      EM.start_server '127.0.0.1', @port
+-      EM.connect '127.0.0.1', @port, test_module
++      EM.start_server 'localhost', @port
++      EM.connect 'localhost', @port, test_module
+     end
+ 
+     # Enabled isn't 1 on all platforms - Mac OS seems to be 8
+@@ -65,8 +65,8 @@
+     end
+ 
+     EM.run do
+-      EM.start_server '127.0.0.1', @port
+-      EM.connect '127.0.0.1', @port, test_module
++      EM.start_server 'localhost', @port
++      EM.connect 'localhost', @port, test_module
+     end
+ 
+     # Enabled isn't 1 on all platforms - Mac OS seems to be 8
+@@ -104,8 +104,8 @@
+     end
+ 
+     EM.run do
+-      EM.start_server '127.0.0.1', @port
+-      EM.connect '127.0.0.1', @port, test_module
++      EM.start_server 'localhost', @port
++      EM.connect 'localhost', @port, test_module
+     end
+ 
+     assert_equal 0, val.unpack('i').first
+--- a/tests/test_ltp.rb
++++ b/tests/test_ltp.rb
+@@ -36,12 +36,12 @@
+   def test_simple_lines
+     conn = nil
+     EM.run {
+-      EM.start_server( "127.0.0.1", @port, TLP_LineBuffer ) do |c|
++      EM.start_server( "localhost", @port, TLP_LineBuffer ) do |c|
+         conn = c
+       end
+       setup_timeout 0.4
+ 
+-      EM.connect "127.0.0.1", @port, StopClient do |c|
++      EM.connect "localhost", @port, StopClient do |c|
+         c.send_data "aaa\nbbb\r\nccc\n"
+         c.close_connection_after_writing
+       end
+@@ -71,11 +71,11 @@
+   def test_overlength_lines
+     conn = nil
+     EM.run {
+-      EM.start_server( "127.0.0.1", @port, TLP_ErrorMessage ) do |c|
++      EM.start_server( "localhost", @port, TLP_ErrorMessage ) do |c|
+         conn = c
+       end
+       setup_timeout 0.4
+-      EM.connect "127.0.0.1", @port, StopClient do |c|
++      EM.connect "localhost", @port, StopClient do |c|
+         c.send_data "a" * (16*1024 + 1)
+         c.send_data "\n"
+         c.close_connection_after_writing
+@@ -105,10 +105,10 @@
+   def test_lines_and_text
+     output = ''
+     EM.run {
+-      EM.start_server( "127.0.0.1", @port, LineAndTextTest )
++      EM.start_server( "localhost", @port, LineAndTextTest )
+       setup_timeout 0.4
+ 
+-      EM.connect "127.0.0.1", @port, StopClient do |c|
++      EM.connect "localhost", @port, StopClient do |c|
+         c.set_receive_data { |data| output << data }
+         c.send_data "Content-length: 400\n"
+         c.send_data "\n"
+@@ -139,10 +139,10 @@
+   def test_binary_text
+     output = ''
+     EM.run {
+-      EM.start_server( "127.0.0.1", @port, BinaryTextTest )
++      EM.start_server( "localhost", @port, BinaryTextTest )
+       setup_timeout 0.4
+ 
+-      EM.connect "127.0.0.1", @port, StopClient do |c|
++      EM.connect "localhost", @port, StopClient do |c|
+         c.set_receive_data { |data| output << data }
+         c.send_data "Content-length: 10000\n"
+         c.send_data "A" * 10000
+--- a/tests/test_many_fds.rb
++++ b/tests/test_many_fds.rb
+@@ -10,9 +10,9 @@
+     a = nil
+     Process.setrlimit(Process::RLIMIT_NOFILE, 4096) rescue nil
+     EM.run {
+-      EM.start_server '127.0.0.1', @port, mod
++      EM.start_server 'localhost', @port, mod
+       1100.times do
+-        a = EM.connect '127.0.0.1', @port, mod
++        a = EM.connect 'localhost', @port, mod
+         assert_kind_of EM::Connection, a
+       end
+       EM.stop
+--- a/tests/test_object_protocol.rb
++++ b/tests/test_object_protocol.rb
+@@ -26,8 +26,8 @@
+ 
+   def test_send_receive
+     EM.run{
+-      EM.start_server "127.0.0.1", @port, Server
+-      EM.connect "127.0.0.1", @port, Client
++      EM.start_server "localhost", @port, Server
++      EM.connect "localhost", @port, Client
+     }
+ 
+     assert($client == {:hello=>'world'})
+--- a/tests/test_pause.rb
++++ b/tests/test_pause.rb
+@@ -45,8 +45,8 @@
+       end
+ 
+       EM.run do
+-        EM.start_server "127.0.0.1", @port, test_server
+-        EM.connect "127.0.0.1", @port, test_client
++        EM.start_server "localhost", @port, test_server
++        EM.connect "localhost", @port, test_client
+ 
+         tmr = darwin? ? 0.10 : 0.05
+ 
+@@ -87,8 +87,8 @@
+       buf = 'a' * 1024
+ 
+       EM.run do
+-        EM.start_server "127.0.0.1", @port, test_server
+-        cli = EM.connect "127.0.0.1", @port
++        EM.start_server "localhost", @port, test_server
++        cli = EM.connect "localhost", @port
+         128.times do
+           cli.send_data buf
+         end
+--- a/tests/test_pending_connect_timeout.rb
++++ b/tests/test_pending_connect_timeout.rb
+@@ -5,7 +5,7 @@
+   if EM.respond_to? :get_pending_connect_timeout
+     def test_default
+       EM.run {
+-        c = EM.connect("127.0.0.1", 54321)
++        c = EM.connect("localhost", 54321)
+         assert_equal 20.0, c.pending_connect_timeout
+         EM.stop
+       }
+@@ -13,7 +13,7 @@
+ 
+     def test_set_and_get
+       EM.run {
+-        c = EM.connect("127.0.0.1", 54321)
++        c = EM.connect("localhost", 54321)
+         c.pending_connect_timeout = 2.5
+         assert_equal 2.5, c.pending_connect_timeout
+         EM.stop
+--- a/tests/test_proxy_connection.rb
++++ b/tests/test_proxy_connection.rb
+@@ -95,7 +95,7 @@
+       end
+ 
+       def receive_data(data)
+-        @proxy = EM.connect("127.0.0.1", @port, ProxyConnection, self, data)
++        @proxy = EM.connect("localhost", @port, ProxyConnection, self, data)
+       end
+     end
+ 
+@@ -105,7 +105,7 @@
+       end
+ 
+       def receive_data(data)
+-        EM.connect("127.0.0.1", @port, PartialProxyConnection, self, data, 1)
++        EM.connect("localhost", @port, PartialProxyConnection, self, data, 1)
+       end
+     end
+ 
+@@ -115,7 +115,7 @@
+       end
+ 
+       def receive_data(data)
+-        EM.connect("127.0.0.1", @port, ProxyConnection, self, data)
++        EM.connect("localhost", @port, ProxyConnection, self, data)
+         close_connection
+       end
+     end
+@@ -127,9 +127,9 @@
+ 
+     def test_proxy_connection
+       EM.run {
+-        EM.start_server("127.0.0.1", @port, Server)
+-        EM.start_server("127.0.0.1", @proxy_port, ProxyServer, @port)
+-        EM.connect("127.0.0.1", @proxy_port, Client)
++        EM.start_server("localhost", @port, Server)
++        EM.start_server("localhost", @proxy_port, ProxyServer, @port)
++        EM.connect("localhost", @proxy_port, Client)
+       }
+ 
+       assert_equal("I know!", $client_data)
+@@ -137,9 +137,9 @@
+ 
+     def test_proxied_bytes
+       EM.run {
+-        EM.start_server("127.0.0.1", @port, Server)
+-        EM.start_server("127.0.0.1", @proxy_port, ProxyServer, @port)
+-        EM.connect("127.0.0.1", @proxy_port, Client)
++        EM.start_server("localhost", @port, Server)
++        EM.start_server("localhost", @proxy_port, ProxyServer, @port)
++        EM.connect("localhost", @proxy_port, Client)
+       }
+ 
+       assert_equal("I know!", $client_data)
+@@ -148,9 +148,9 @@
+ 
+     def test_partial_proxy_connection
+       EM.run {
+-        EM.start_server("127.0.0.1", @port, Server)
+-        EM.start_server("127.0.0.1", @proxy_port, PartialProxyServer, @port)
+-        EM.connect("127.0.0.1", @proxy_port, Client)
++        EM.start_server("localhost", @port, Server)
++        EM.start_server("localhost", @proxy_port, PartialProxyServer, @port)
++        EM.connect("localhost", @proxy_port, Client)
+       }
+ 
+       assert_equal("I know!", $client_data)
+@@ -161,9 +161,9 @@
+     def test_early_close
+       $client_data = nil
+       EM.run {
+-        EM.start_server("127.0.0.1", @port, Server)
+-        EM.start_server("127.0.0.1", @proxy_port, EarlyClosingProxy, @port)
+-        EM.connect("127.0.0.1", @proxy_port, Client2)
++        EM.start_server("localhost", @port, Server)
++        EM.start_server("localhost", @proxy_port, EarlyClosingProxy, @port)
++        EM.connect("localhost", @proxy_port, Client2)
+       }
+ 
+       assert($unbound_early)
+--- a/tests/test_pure.rb
++++ b/tests/test_pure.rb
+@@ -25,7 +25,7 @@
+     2.times do
+       assert_raises(exception) do
+         EM.run do
+-          EM.start_server "127.0.0.1", @port
++          EM.start_server "localhost", @port
+           raise exception
+         end
+       end
+@@ -52,7 +52,7 @@
+     assert_nothing_raised do
+       EM.run {
+         setup_timeout(2)
+-        EM.connect "127.0.0.1", @port, TestConnrefused
++        EM.connect "localhost", @port, TestConnrefused
+       }
+     end
+   end
+@@ -69,8 +69,8 @@
+   def test_connaccepted
+     assert_nothing_raised do
+       EM.run {
+-        EM.start_server "127.0.0.1", @port
+-        EM.connect "127.0.0.1", @port, TestConnaccepted
++        EM.start_server "localhost", @port
++        EM.connect "localhost", @port, TestConnaccepted
+         setup_timeout(1)
+       }
+     end
+@@ -128,8 +128,8 @@
+     $client_handshake_completed, $server_handshake_completed = false, false
+     $client_received_data, $server_received_data = nil, nil
+     EM.run do
+-      EM.start_server("127.0.0.1", 16789, TLSServer)
+-      EM.connect("127.0.0.1", 16789, TLSClient)
++      EM.start_server("localhost", 16789, TLSServer)
++      EM.connect("localhost", 16789, TLSClient)
+     end
+ 
+     assert($client_handshake_completed)
+--- a/tests/test_sasl.rb
++++ b/tests/test_sasl.rb
+@@ -26,9 +26,9 @@
+   def test_sasl
+     resp = nil
+     EM.run {
+-      EM.start_server( "127.0.0.1", @port, SaslServer )
++      EM.start_server( "localhost", @port, SaslServer )
+ 
+-      c = EM.connect( "127.0.0.1", @port, SaslClient )
++      c = EM.connect( "localhost", @port, SaslClient )
+       d = c.validate?( TestUser, TestPsw )
+       d.timeout 1
+       d.callback {
+--- a/tests/test_send_file.rb
++++ b/tests/test_send_file.rb
+@@ -43,10 +43,10 @@
+       data = ''
+ 
+       EM.run {
+-        EM.start_server "127.0.0.1", @port, TestModule, @filename
++        EM.start_server "localhost", @port, TestModule, @filename
+         setup_timeout
+ 
+-        EM.connect "127.0.0.1", @port, TestClient do |c|
++        EM.connect "localhost", @port, TestClient do |c|
+           c.data_to { |d| data << d }
+         end
+       }
+@@ -64,9 +64,9 @@
+ 
+       assert_raises(RuntimeError) {
+         EM.run {
+-          EM.start_server "127.0.0.1", @port, TestModule, @filename
++          EM.start_server "localhost", @port, TestModule, @filename
+           setup_timeout
+-          EM.connect "127.0.0.1", @port, TestClient do |c|
++          EM.connect "localhost", @port, TestClient do |c|
+             c.data_to { |d| data << d }
+           end
+         }
+@@ -105,9 +105,9 @@
+       data = ''
+ 
+       EM.run {
+-        EM.start_server "127.0.0.1", @port, StreamTestModule, @filename
++        EM.start_server "localhost", @port, StreamTestModule, @filename
+         setup_timeout
+-        EM.connect "127.0.0.1", @port, TestClient do |c|
++        EM.connect "localhost", @port, TestClient do |c|
+           c.data_to { |d| data << d }
+         end
+       }
+@@ -123,9 +123,9 @@
+       data = ''
+ 
+       EM.run {
+-        EM.start_server "127.0.0.1", @port, ChunkStreamTestModule, @filename
++        EM.start_server "localhost", @port, ChunkStreamTestModule, @filename
+         setup_timeout
+-        EM.connect "127.0.0.1", @port, TestClient do |c|
++        EM.connect "localhost", @port, TestClient do |c|
+           c.data_to { |d| data << d }
+         end
+       }
+@@ -149,9 +149,9 @@
+     def test_stream_bad_file
+       data = ''
+       EM.run {
+-        EM.start_server "127.0.0.1", @port, BadFileTestModule, @filename
++        EM.start_server "localhost", @port, BadFileTestModule, @filename
+         setup_timeout(5)
+-        EM.connect "127.0.0.1", @port, TestClient do |c|
++        EM.connect "localhost", @port, TestClient do |c|
+           c.data_to { |d| data << d }
+         end
+       }
+@@ -178,9 +178,9 @@
+       data = ''
+ 
+       EM.run {
+-        EM.start_server "127.0.0.1", @port, StreamTestModule, @filename
++        EM.start_server "localhost", @port, StreamTestModule, @filename
+         setup_timeout(darwin? ? 0.5 : 0.25)
+-        EM.connect "127.0.0.1", @port, TestClient do |c|
++        EM.connect "localhost", @port, TestClient do |c|
+           c.data_to { |d| data << d }
+         end
+       }
+@@ -196,9 +196,9 @@
+       data = ''
+ 
+       EM.run {
+-        EM.start_server "127.0.0.1", @port, ChunkStreamTestModule, @filename
++        EM.start_server "localhost", @port, ChunkStreamTestModule, @filename
+         setup_timeout
+-        EM.connect "127.0.0.1", @port, TestClient do |c|
++        EM.connect "localhost", @port, TestClient do |c|
+           c.data_to { |d| data << d }
+         end
+       }
+--- a/tests/test_servers.rb
++++ b/tests/test_servers.rb
+@@ -12,7 +12,7 @@
+ 
+   def run_test_stop_server
+     EM.run {
+-      sig = EM.start_server("127.0.0.1", @port)
++      sig = EM.start_server("localhost", @port)
+       assert server_alive?, "Server didn't start"
+       EM.stop_server sig
+       # Give the server some time to shutdown.
+--- a/tests/test_smtpclient.rb
++++ b/tests/test_smtpclient.rb
+@@ -2,7 +2,7 @@
+ 
+ class TestSmtpClient < Test::Unit::TestCase
+ 
+-  Localhost = "127.0.0.1"
++  Localhost = "localhost"
+   Localport = 9801
+ 
+   def setup
+--- a/tests/test_smtpserver.rb
++++ b/tests/test_smtpserver.rb
+@@ -5,7 +5,7 @@
+ 
+   # Don't test on port 25. It requires superuser and there's probably
+   # a mail server already running there anyway.
+-  Localhost = "127.0.0.1"
++  Localhost = "localhost"
+   Localport = 25001
+ 
+   # This class is an example of what you need to write in order
+--- a/tests/test_sock_opt.rb
++++ b/tests/test_sock_opt.rb
+@@ -23,8 +23,8 @@
+     end
+ 
+     EM.run do
+-      EM.start_server '127.0.0.1', @port
+-      EM.connect '127.0.0.1', @port, test_module
++      EM.start_server 'localhost', @port
++      EM.connect 'localhost', @port, test_module
+     end
+ 
+     assert_equal 0, val
+@@ -43,8 +43,8 @@
+     end
+ 
+     EM.run do
+-      EM.start_server '127.0.0.1', @port
+-      EM.connect '127.0.0.1', @port, test_module
++      EM.start_server 'localhost', @port
++      EM.connect 'localhost', @port, test_module
+     end
+ 
+     assert_equal "\0\0\0\0", val
+--- a/tests/test_unbind_reason.rb
++++ b/tests/test_unbind_reason.rb
+@@ -24,7 +24,7 @@
+     pend('FIXME: this test is broken on Windows') if windows?
+     conn = nil
+     EM.run do
+-      conn = EM.connect '127.0.0.1', 12388, StubConnection
++      conn = EM.connect 'localhost', 12388, StubConnection
+     end
+     assert_equal Errno::ECONNREFUSED, conn.error
+   end
+@@ -33,7 +33,7 @@
+     pend('FIXME: this test is broken on Windows') if windows?
+     conn = nil
+     EM.run do
+-      conn = EM.connect '127.0.0.1', 12388, StubConnection
++      conn = EM.connect 'localhost', 12388, StubConnection
+     end
+     assert_equal Errno::ECONNREFUSED, conn.error
+   end

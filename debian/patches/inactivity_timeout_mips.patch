@@ -1,0 +1,17 @@
+Description: increase inactivity timeout
+ mipsel is sometimes at 0.31
+Author: Cédric Boutillier <boutil@debian.org>
+Last-Update: 2021-02-04
+Forwarded: not-needed
+
+--- a/tests/test_inactivity_timeout.rb
++++ b/tests/test_inactivity_timeout.rb
+@@ -87,7 +87,7 @@
+       }
+ 
+       # .30 is double the timeout and not acceptable
+-      assert_in_delta 0.15, (finish - start), (darwin? ? 0.20 : 0.14)
++      assert_in_delta 0.15, (finish - start), 0.20
+       # make sure it was a timeout and not a TLS error
+       assert_equal Errno::ETIMEDOUT, reason
+     end
