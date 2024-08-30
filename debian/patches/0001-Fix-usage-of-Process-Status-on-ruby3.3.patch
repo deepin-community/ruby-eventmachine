@@ -1,0 +1,52 @@
+From e907e9acbecd354eb5d58eb22f866fbbced1aa44 Mon Sep 17 00:00:00 2001
+From: Antonio Terceiro <terceiro@debian.org>
+Date: Mon, 22 Jul 2024 04:59:33 -0300
+Subject: [PATCH] Fix usage of Process::Status on ruby3.3
+
+Forwarded: https://github.com/eventmachine/eventmachine/pull/988
+---
+ ext/extconf.rb   | 1 +
+ ext/rubymain.cpp | 8 ++++++++
+ 2 files changed, 9 insertions(+)
+
+diff --git a/ext/extconf.rb b/ext/extconf.rb
+index ce83c00..16b0b5d 100644
+--- a/ext/extconf.rb
++++ b/ext/extconf.rb
+@@ -140,6 +140,7 @@ end
+ 
+ # Add for changes to Process::Status in Ruby 3
+ add_define("IS_RUBY_3_OR_LATER") if RUBY_VERSION > "3.0"
++add_define("IS_RUBY_3_3_OR_LATER") if RUBY_VERSION > "3.3"
+ 
+ # Adjust number of file descriptors (FD) on Windows
+ 
+diff --git a/ext/rubymain.cpp b/ext/rubymain.cpp
+index 37c944b..230896d 100644
+--- a/ext/rubymain.cpp
++++ b/ext/rubymain.cpp
+@@ -563,6 +563,13 @@ static VALUE t_get_subprocess_status (VALUE self UNUSED, VALUE signature)
+ 	if (evma_get_subprocess_status (NUM2BSIG (signature), &status)) {
+ 		if (evma_get_subprocess_pid (NUM2BSIG (signature), &pid)) {
+ 
++#ifdef IS_RUBY_3_3_OR_LATER
++			proc_status = rb_obj_alloc(rb_cProcessStatus);
++			struct rb_process_status *data = NULL;
++			data = (rb_process_status*)RTYPEDDATA_GET_DATA(proc_status);
++			data->pid = pid;
++			data->status = status;
++#else
+ #ifdef IS_RUBY_3_OR_LATER
+ 			struct rb_process_status *data = NULL;
+ 
+@@ -585,6 +592,7 @@ static VALUE t_get_subprocess_status (VALUE self UNUSED, VALUE signature)
+ 			rb_ivar_set(proc_status, rb_intern_const("status"), INT2FIX(status));
+ 			rb_ivar_set(proc_status, rb_intern_const("pid"), INT2FIX(pid));
+ #endif
++#endif
+ 
+ #ifdef RUBINIUS
+ 			/* Rubinius uses standard instance vars */
+-- 
+2.43.0
+
