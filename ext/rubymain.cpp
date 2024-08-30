@@ -65,6 +65,7 @@ static VALUE EM_eUnknownTimerFired;
 static VALUE EM_eConnectionNotBound;
 static VALUE EM_eUnsupported;
 static VALUE EM_eInvalidSignature;
+static VALUE EM_eInvalidPrivateKey;
 
 static VALUE Intern_at_signature;
 static VALUE Intern_at_timers;
@@ -84,7 +85,16 @@ static VALUE Intern_proxy_target_unbound;
 static VALUE Intern_proxy_completed;
 static VALUE Intern_connection_completed;
 
-static VALUE rb_cProcStatus;
+static VALUE rb_cProcessStatus;
+
+#ifdef IS_RUBY_3_OR_LATER
+/* Structure definition from MRI Ruby 3.0 process.c */
+struct rb_process_status {
+    rb_pid_t pid;
+    int status;
+    int error;
+};
+#endif
 
 struct em_event {
 	uintptr_t signature;
@@ -352,7 +362,11 @@ t_start_tls
 
 static VALUE t_start_tls (VALUE self UNUSED, VALUE signature)
 {
-	evma_start_tls (NUM2BSIG (signature));
+	try {
+		evma_start_tls (NUM2BSIG (signature));
+	} catch (const std::runtime_error& e) {
+		rb_raise (EM_eInvalidPrivateKey, e.what(), signature);
+	}
 	return Qnil;
 }
 
@@ -360,14 +374,14 @@ static VALUE t_start_tls (VALUE self UNUSED, VALUE signature)
 t_set_tls_parms
 ***************/
 
-static VALUE t_set_tls_parms (VALUE self UNUSED, VALUE signature, VALUE privkeyfile, VALUE certchainfile, VALUE verify_peer, VALUE fail_if_no_peer_cert, VALUE snihostname, VALUE cipherlist, VALUE ecdh_curve, VALUE dhparam, VALUE ssl_version)
+static VALUE t_set_tls_parms (VALUE self UNUSED, VALUE signature, VALUE privkeyfile, VALUE privkey, VALUE privkeypass, VALUE certchainfile, VALUE cert, VALUE verify_peer, VALUE fail_if_no_peer_cert, VALUE snihostname, VALUE cipherlist, VALUE ecdh_curve, VALUE dhparam, VALUE ssl_version)
 {
 	/* set_tls_parms takes a series of positional arguments for specifying such things
 	 * as private keys and certificate chains.
 	 * It's expected that the parameter list will grow as we add more supported features.
 	 * ALL of these parameters are optional, and can be specified as empty or NULL strings.
 	 */
-	evma_set_tls_parms (NUM2BSIG (signature), StringValueCStr (privkeyfile), StringValueCStr (certchainfile), (verify_peer == Qtrue ? 1 : 0), (fail_if_no_peer_cert == Qtrue ? 1 : 0), StringValueCStr (snihostname), StringValueCStr (cipherlist), StringValueCStr (ecdh_curve), StringValueCStr (dhparam), NUM2INT (ssl_version));
+	evma_set_tls_parms (NUM2BSIG (signature), StringValueCStr (privkeyfile), StringValueCStr (privkey), StringValueCStr (privkeypass), StringValueCStr (certchainfile), StringValueCStr (cert), (verify_peer == Qtrue ? 1 : 0), (fail_if_no_peer_cert == Qtrue ? 1 : 0), StringValueCStr (snihostname), StringValueCStr (cipherlist), StringValueCStr (ecdh_curve), StringValueCStr (dhparam), NUM2INT (ssl_version));
 	return Qnil;
 }
 
@@ -548,11 +562,29 @@ static VALUE t_get_subprocess_status (VALUE self UNUSED, VALUE signature)
 
 	if (evma_get_subprocess_status (NUM2BSIG (signature), &status)) {
 		if (evma_get_subprocess_pid (NUM2BSIG (signature), &pid)) {
-			proc_status = rb_obj_alloc(rb_cProcStatus);
 
+#ifdef IS_RUBY_3_OR_LATER
+			struct rb_process_status *data = NULL;
+
+			/* Defined to match static definition from MRI Ruby 3.0 process.c
+			 *
+			 * Older C++ compilers before GCC 8 don't allow static initialization of a
+			 * struct without every field specified, so the definition here is at runtime
+			 */
+			static rb_data_type_t rb_process_status_type;
+			rb_process_status_type.wrap_struct_name = "Process::Status";
+			rb_process_status_type.function.dfree = RUBY_DEFAULT_FREE;
+			rb_process_status_type.flags = RUBY_TYPED_FREE_IMMEDIATELY;
+
+			proc_status = TypedData_Make_Struct(rb_cProcessStatus, struct rb_process_status, &rb_process_status_type, data);
+			data->pid = pid;
+			data->status = status;
+#else
+			proc_status = rb_obj_alloc(rb_cProcessStatus);
 			/* MRI Ruby uses hidden instance vars */
-			rb_iv_set(proc_status, "status", INT2FIX(status));
-			rb_iv_set(proc_status, "pid", INT2FIX(pid));
+			rb_ivar_set(proc_status, rb_intern_const("status"), INT2FIX(status));
+			rb_ivar_set(proc_status, rb_intern_const("pid"), INT2FIX(pid));
+#endif
 
 #ifdef RUBINIUS
 			/* Rubinius uses standard instance vars */
@@ -567,7 +599,7 @@ static VALUE t_get_subprocess_status (VALUE self UNUSED, VALUE signature)
 #endif
 		}
 	}
-
+	rb_obj_freeze(proc_status);
 	return proc_status;
 }
 
@@ -1426,7 +1458,7 @@ extern "C" void Init_rubyeventmachine()
 {
 	// Lookup Process::Status for get_subprocess_status
 	VALUE rb_mProcess = rb_const_get(rb_cObject, rb_intern("Process"));
-	rb_cProcStatus = rb_const_get(rb_mProcess, rb_intern("Status"));
+	rb_cProcessStatus = rb_const_get(rb_mProcess, rb_intern("Status"));
 
 	// Tuck away some symbol values so we don't have to look 'em up every time we need 'em.
 	Intern_at_signature = rb_intern ("@signature");
@@ -1460,6 +1492,7 @@ extern "C" void Init_rubyeventmachine()
 	EM_eUnknownTimerFired = rb_define_class_under (EmModule, "UnknownTimerFired", rb_eRuntimeError);
 	EM_eUnsupported = rb_define_class_under (EmModule, "Unsupported", rb_eRuntimeError);
 	EM_eInvalidSignature = rb_define_class_under (EmModule, "InvalidSignature", rb_eRuntimeError);
+	EM_eInvalidPrivateKey = rb_define_class_under (EmModule, "InvalidPrivateKey", rb_eRuntimeError);
 
 	rb_define_module_function (EmModule, "initialize_event_machine", (VALUE(*)(...))t_initialize_event_machine, 0);
 	rb_define_module_function (EmModule, "run_machine_once", (VALUE(*)(...))t_run_machine_once, 0);
@@ -1471,7 +1504,7 @@ extern "C" void Init_rubyeventmachine()
 	rb_define_module_function (EmModule, "stop_tcp_server", (VALUE(*)(...))t_stop_server, 1);
 	rb_define_module_function (EmModule, "start_unix_server", (VALUE(*)(...))t_start_unix_server, 1);
 	rb_define_module_function (EmModule, "attach_sd", (VALUE(*)(...))t_attach_sd, 1);
-	rb_define_module_function (EmModule, "set_tls_parms", (VALUE(*)(...))t_set_tls_parms, 10);
+	rb_define_module_function (EmModule, "set_tls_parms", (VALUE(*)(...))t_set_tls_parms, 13);
 	rb_define_module_function (EmModule, "start_tls", (VALUE(*)(...))t_start_tls, 1);
 	rb_define_module_function (EmModule, "get_peer_cert", (VALUE(*)(...))t_get_peer_cert, 1);
 	rb_define_module_function (EmModule, "get_cipher_bits", (VALUE(*)(...))t_get_cipher_bits, 1);

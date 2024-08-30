@@ -33,56 +33,91 @@ static X509 *DefaultCertificate = NULL;
 
 static char PrivateMaterials[] = {
 "-----BEGIN RSA PRIVATE KEY-----\n"
-"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\n"
+"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\n"
+"Rnvuj8XvBcSE6pVTMgkCw06w2fpef7T7\n"
 "-----END RSA PRIVATE KEY-----\n"
 "-----BEGIN CERTIFICATE-----\n"
-"MIIDajCCAtOgAwIBAgIJANm4W/Tzs+s+MA0GCSqGSIb3DQEBCwUAMIGqMQswCQYD\n"
-"VQQGEwJVUzERMA8GA1UECBMITmV3IFlvcmsxETAPBgNVBAcTCE5ldyBZb3JrMRYw\n"
-"FAYDVQQKEw1TdGVhbWhlYXQubmV0MRQwEgYDVQQLEwtFbmdpbmVlcmluZzEdMBsG\n"
-"A1UEAxMUb3BlbmNhLnN0ZWFtaGVhdC5uZXQxKDAmBgkqhkiG9w0BCQEWGWVuZ2lu\n"
-"ZWVyaW5nQHN0ZWFtaGVhdC5uZXQwHhcNMjAwOTAxMDAwMDAwWhcNMzAwOTAxMDAw\n"
-"MDAwWjCBqjELMAkGA1UEBhMCVVMxETAPBgNVBAgTCE5ldyBZb3JrMREwDwYDVQQH\n"
-"EwhOZXcgWW9yazEWMBQGA1UEChMNU3RlYW1oZWF0Lm5ldDEUMBIGA1UECxMLRW5n\n"
-"aW5lZXJpbmcxHTAbBgNVBAMTFG9wZW5jYS5zdGVhbWhlYXQubmV0MSgwJgYJKoZI\n"
-"hvcNAQkBFhllbmdpbmVlcmluZ0BzdGVhbWhlYXQubmV0MIIBIjANBgkqhkiG9w0B\n"
-"AQEFAAOCAQ8AMIIBCgKCAQEA25ZTHopLfMKYeVwZoWtDwBd1RqCJhIL7wgDy/05j\n"
-"zIYm8JFfxwFI+pau/3mLVHYPrl9rXeM5ZBONeLwewDJAsIYVtyZ8O9pICK6uz4so\n"
-"gfwST8Uc/sumdd/mq2vIw4zEGjcaXdmMZYrJOxlvx32Fsrc5M6iNIMQYFnLPU3Ks\n"
-"JhvOAZiM6jEn2wIszhq5X/5HupaOuCaZqCxOtaXaWguJF4SGFW6tBMxaY4ryiLyU\n"
-"wC0EGPoHC2f34DxeXpRQ9TNS3H//L90wTok6slrqZQ/4zXU64+0pd5q35FqnS7gU\n"
-"7H6SQ9yjTWPPe/gNTVPWoQd9SJJmB7Q1BYukcfDnh69NBwIDAQABoxIwEDAOBgNV\n"
-"HQ8BAf8EBAMCBLAwDQYJKoZIhvcNAQELBQADgYEAc4mWHK3HHAwWXIsJztUOCEaT\n"
-"yDpzqt5nnDqg5Q3/1HhiM4wsWoam9ixTcZk25+5xcMsvuSoDvzAJzyd5wpBkOq/z\n"
-"UeWxZmLYOzOghrT62TLJVxAqh0AdEP8jMWOAeWrrOXnXx8AvG1+R8n4Rf5/koSa8\n"
-"wJrrW4j7WAEsY5kG4hU=\n"
+"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\n"
 "-----END CERTIFICATE-----\n"};
 
 /* These private materials were made with:
- * openssl req -new -x509 -keyout cakey.pem -out cacert.pem -nodes -days 6500
+ * openssl req -new -x509 -keyout cakey.pem -out cacert.pem -nodes -days 6500 -pkeyopt rsa_keygen_bits:4096
  * TODO: We need a full-blown capability to work with user-supplied
  * keypairs and properly-signed certificates.
  */
@@ -113,7 +148,6 @@ static void InitializeDefaultCredentials()
 		DefaultPrivateKey = NULL;
 	}
 	PEM_read_bio_PrivateKey (bio, &DefaultPrivateKey, builtin_passwd_cb, 0);
-
 	if (DefaultCertificate) {
 		// we may come here in a restart.
 		X509_free (DefaultCertificate);
@@ -130,16 +164,13 @@ static void InitializeDefaultCredentials()
 SslContext_t::SslContext_t
 **************************/
 
-SslContext_t::SslContext_t (bool is_server, const std::string &privkeyfile, const std::string &certchainfile, const std::string &cipherlist, const std::string &ecdh_curve, const std::string &dhparam, int ssl_version) :
+SslContext_t::SslContext_t (bool is_server, const std::string &privkeyfile, const std::string &privkey, const std::string &privkeypass, const std::string &certchainfile, const std::string &cert, const std::string &cipherlist, const std::string &ecdh_curve, const std::string &dhparam, int ssl_version) :
 	bIsServer (is_server),
 	pCtx (NULL),
 	PrivateKey (NULL),
 	Certificate (NULL)
 {
-	/* TODO: the usage of the specified private-key and cert-chain filenames only applies to
-	 * client-side connections at this point. Server connections currently use the default materials.
-	 * That needs to be fixed asap.
-	 * Also, in this implementation, server-side connections use statically defined X-509 defaults.
+	/* TODO: Also, in this implementation, server-side connections use statically defined X-509 defaults.
 	 * One thing I'm really not clear on is whether or not you have to explicitly free X509 and EVP_PKEY
 	 * objects when we call our destructor, or whether just calling SSL_CTX_free is enough.
 	 */
@@ -202,24 +233,70 @@ SslContext_t::SslContext_t (bool is_server, const std::string &privkeyfile, cons
 	SSL_CTX_set_mode (pCtx, SSL_MODE_RELEASE_BUFFERS);
 	#endif
 
+	int e;
+	// As indicated in man(3) ssl_ctx_use_privatekey_file
+	// To change a certificate, private key pair the new certificate needs to be set with
+	// SSL_use_certificate() or SSL_CTX_use_certificate() before setting the private key with SSL_CTX_use_PrivateKey() or SSL_use_PrivateKey().
+	if (certchainfile.length() > 0) {
+		e = SSL_CTX_use_certificate_chain_file (pCtx, certchainfile.c_str());
+		if (e <= 0) ERR_print_errors_fp(stderr);
+		assert (e > 0);
+	}
+	if (cert.length() > 0) {
+		BIO *bio = BIO_new_mem_buf (cert.c_str(), -1);
+		assert(bio);
+		BIO_set_mem_eof_return(bio, 0);
+		X509 * clientCertificate = PEM_read_bio_X509 (bio, NULL, NULL, 0);
+		e = SSL_CTX_use_certificate (pCtx, clientCertificate);
+		X509_free(clientCertificate);
+		BIO_free (bio);
+		if (e <= 0) ERR_print_errors_fp(stderr);
+		assert (e > 0);
+	}
+	if (privkeyfile.length() > 0) {
+		if (privkeypass.length() > 0) {
+			SSL_CTX_set_default_passwd_cb_userdata(pCtx, const_cast<char*>(privkeypass.c_str()));
+		}
+		e = SSL_CTX_use_PrivateKey_file (pCtx, privkeyfile.c_str(), SSL_FILETYPE_PEM);
+		if (e <= 0) ERR_print_errors_fp(stderr);
+		assert (e > 0);
+	}
+	if (privkey.length() > 0) {
+		BIO *bio = BIO_new_mem_buf (privkey.c_str(), -1);
+		assert(bio);
+		BIO_set_mem_eof_return(bio, 0);
+		EVP_PKEY * clientPrivateKey = PEM_read_bio_PrivateKey (bio, NULL, NULL, const_cast<char*>(privkeypass.c_str()));
+		e = SSL_CTX_use_PrivateKey (pCtx, clientPrivateKey);
+		EVP_PKEY_free(clientPrivateKey);
+		BIO_free (bio);
+		if (e <= 0) {
+			BIO *bio_err = BIO_new(BIO_s_mem());
+			std::string error_msg;
+			if (bio_err != NULL) {
+				ERR_print_errors(bio_err);
+				char* buf;
+				long size = BIO_get_mem_data(bio_err, &buf);
+				error_msg.assign(buf,size);
+				BIO_free(bio_err);
+			}
+			throw std::runtime_error (error_msg);
+		}
+		assert (e > 0);
+	}
+
 	if (bIsServer) {
-
-		// The SSL_CTX calls here do NOT allocate memory.
-		int e;
-		if (privkeyfile.length() > 0)
-			e = SSL_CTX_use_PrivateKey_file (pCtx, privkeyfile.c_str(), SSL_FILETYPE_PEM);
-		else
-			e = SSL_CTX_use_PrivateKey (pCtx, DefaultPrivateKey);
-		if (e <= 0) ERR_print_errors_fp(stderr);
-		assert (e > 0);
-
-		if (certchainfile.length() > 0)
-			e = SSL_CTX_use_certificate_chain_file (pCtx, certchainfile.c_str());
-		else
+		if (certchainfile.length() == 0 && cert.length() == 0) {
+			// ensure default private material is configured for ssl
 			e = SSL_CTX_use_certificate (pCtx, DefaultCertificate);
-		if (e <= 0) ERR_print_errors_fp(stderr);
-		assert (e > 0);
-
+			if (e <= 0) ERR_print_errors_fp(stderr);
+			assert (e > 0);
+		}
+		if (privkeyfile.length() == 0 && privkey.length() == 0) {
+			// ensure default private material is configured for ssl
+			e = SSL_CTX_use_PrivateKey (pCtx, DefaultPrivateKey);
+			if (e <= 0) ERR_print_errors_fp(stderr);
+			assert (e > 0);
+		}
 		if (dhparam.length() > 0) {
 			DH   *dh;
 			BIO  *bio;
@@ -285,19 +362,6 @@ SslContext_t::SslContext_t (bool is_server, const std::string &privkeyfile, cons
 		SSL_CTX_sess_set_cache_size (pCtx, 128);
 		SSL_CTX_set_session_id_context (pCtx, (unsigned char*)"eventmachine", 12);
 	}
-	else {
-		int e;
-		if (privkeyfile.length() > 0) {
-			e = SSL_CTX_use_PrivateKey_file (pCtx, privkeyfile.c_str(), SSL_FILETYPE_PEM);
-			if (e <= 0) ERR_print_errors_fp(stderr);
-			assert (e > 0);
-		}
-		if (certchainfile.length() > 0) {
-			e = SSL_CTX_use_certificate_chain_file (pCtx, certchainfile.c_str());
-			if (e <= 0) ERR_print_errors_fp(stderr);
-			assert (e > 0);
-		}
-	}
 }
 
 
@@ -322,7 +386,7 @@ SslContext_t::~SslContext_t()
 SslBox_t::SslBox_t
 ******************/
 
-SslBox_t::SslBox_t (bool is_server, const std::string &privkeyfile, const std::string &certchainfile, bool verify_peer, bool fail_if_no_peer_cert, const std::string &snihostname, const std::string &cipherlist, const std::string &ecdh_curve, const std::string &dhparam, int ssl_version, const uintptr_t binding):
+SslBox_t::SslBox_t (bool is_server, const std::string &privkeyfile, const std::string &privkey, const std::string &privkeypass, const std::string &certchainfile, const std::string &cert, bool verify_peer, bool fail_if_no_peer_cert, const std::string &snihostname, const std::string &cipherlist, const std::string &ecdh_curve, const std::string &dhparam, int ssl_version, const uintptr_t binding):
 	bIsServer (is_server),
 	bHandshakeCompleted (false),
 	bVerifyPeer (verify_peer),
@@ -335,7 +399,7 @@ SslBox_t::SslBox_t (bool is_server, const std::string &privkeyfile, const std::s
 	 * a new one every time we come here.
 	 */
 
-	Context = new SslContext_t (bIsServer, privkeyfile, certchainfile, cipherlist, ecdh_curve, dhparam, ssl_version);
+	Context = new SslContext_t (bIsServer, privkeyfile, privkey, privkeypass, certchainfile, cert, cipherlist, ecdh_curve, dhparam, ssl_version);
 	assert (Context);
 
 	pbioRead = BIO_new (BIO_s_mem());

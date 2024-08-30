@@ -1,11 +1,20 @@
-Description: remove git usage in source gemspec
- only when we use source from Github instead of released gem
-Author: Cédric Boutillier <boutil@debian.org>
+From: =?utf-8?q?C=C3=A9dric_Boutillier?= <boutil@debian.org>
+Date: Wed, 12 Oct 2022 13:14:46 -0300
+Subject: remove git usage in source gemspec
+
 Last-Update: 2021-01-09
 Forwarded: not needed
+
+only when we use source from Github instead of released gem
+---
+ eventmachine.gemspec | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/eventmachine.gemspec b/eventmachine.gemspec
+index 1c561fa..21771cb 100644
 --- a/eventmachine.gemspec
 +++ b/eventmachine.gemspec
-@@ -10,8 +10,8 @@
+@@ -10,8 +10,8 @@ Gem::Specification.new do |s|
    s.authors = ["Francis Cianfrocca", "Aman Gupta"]
    s.email   = ["garbagecat10@gmail.com", "aman@tmm1.net"]
  
@@ -16,7 +25,7 @@ Forwarded: not needed
  
    s.extensions = ["ext/extconf.rb", "ext/fastfilereader/extconf.rb"]
  
-@@ -41,5 +41,5 @@
+@@ -39,5 +39,5 @@ using TCP/IP, especially if custom protocols are required.
  EOT
  
    s.rdoc_options = ["--title", "EventMachine", "--main", "README.md", "-x", "lib/em/version", "-x", "lib/jeventmachine"]

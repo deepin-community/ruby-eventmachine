@@ -1,8 +1,8 @@
 Source: ruby-eventmachine
 Section: ruby
 Priority: optional
-Maintainer: Deepin Developer <deepin-dev@deepin.org>
-Uploaders: Deepin Packages Builder <packages@deepin.org>
+Maintainer: Debian Ruby Team <pkg-ruby-extras-maintainers@lists.alioth.debian.org>
+Uploaders: Laurent Arnoud <laurent@spkdev.net>,
            Paul van Tilburg <paulvt@debian.org>,
            Per Andersson <avtobiff@gmail.com>
 Build-Depends: debhelper-compat (= 13),
@@ -12,18 +12,16 @@ Build-Depends: debhelper-compat (= 13),
                rake,
                rake-compiler,
                ruby-test-unit
-Standards-Version: 4.5.1
-#Vcs-Git
-#Vcs-Browser
+Standards-Version: 4.7.0
+Vcs-Git: https://salsa.debian.org/ruby-team/ruby-eventmachine.git
+Vcs-Browser: https://salsa.debian.org/ruby-team/ruby-eventmachine
 Homepage: https://github.com/eventmachine/eventmachine
 Testsuite: autopkgtest-pkg-ruby
-XS-Ruby-Versions: all
 Rules-Requires-Root: no
 
 Package: ruby-eventmachine
 Architecture: any
-XB-Ruby-Versions: ${ruby:Versions}
-Depends: ruby | ruby-interpreter,
+Depends: ${ruby:Depends},
          ${misc:Depends},
          ${shlibs:Depends}
 Breaks: ruby-diaspora-vine (<< 0.2.0.develop.4-3~)

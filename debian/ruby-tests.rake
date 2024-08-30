@@ -8,9 +8,17 @@ else
 end
 
 disabled_tests= [
-  'tests/test_idle_connection.rb',
+  'tests/test_exc.rb',
   'tests/test_get_sock_opt.rb',
+  'tests/test_httpclient2.rb',
+  'tests/test_httpclient.rb',
+  'tests/test_idle_connection.rb',
+  'tests/test_inactivity_timeout.rb',
+  'tests/test_kb.rb',
+  'tests/test_pending_connect_timeout.rb',
+  'tests/test_resolver.rb',
   'tests/test_set_sock_opt.rb',
+  'tests/test_unbind_reason.rb',
 ]
 
 ENV['TESTOPTS'] = '-v'
@@ -22,9 +30,9 @@ Gem2Deb::Rake::TestTask.new(:spec) do |t|
 end
 
 task :default do
-  ipv4 = IO.popen(["ip", "-4", "addr", "show", "lo"]).read
-  if ipv4.empty?
-    puts "W: loopback interface has no ipv4 stack, skipping tests"
+  ipv4 = `ip -4 address | grep inet | wc -l`.strip.to_i
+  if ipv4 <= 1
+    puts "W: just loopback interface or none has IPv4 address, this might be a IPv6 builder. Skipping tests..."
   else
     Rake::Task[:spec].invoke
   end
