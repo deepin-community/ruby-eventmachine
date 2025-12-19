@@ -1,3 +1,9 @@
+ruby-eventmachine (1.3~pre20220315-df4ab006-5deepin1) unstable; urgency=medium
+
+  * Rebuild against ruby 3.3.
+
+ -- Tianyu Chen <sweetyfish@deepin.org>  Fri, 19 Dec 2025 11:53:53 +0800
+
 ruby-eventmachine (1.3~pre20220315-df4ab006-5) unstable; urgency=medium
 
   * Team upload.
